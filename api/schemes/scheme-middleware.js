@@ -1,42 +1,46 @@
-/*
-  If `scheme_id` does not exist in the database:
+const Scheme = require('./scheme-model');
 
-  status 404
-  {
-    "message": "scheme with scheme_id <actual id> not found"
+// Middleware to check if scheme ID exists
+async function checkSchemeId(req, res, next) {
+  try {
+    const scheme = await Scheme.findById(req.params.scheme_id);
+    if (!scheme) {
+      return res.status(404).json({ message: `scheme with scheme_id ${req.params.scheme_id} not found` });
+    }
+    req.scheme = scheme;
+    next();
+  } catch (err) {
+    next(err);
   }
-*/
-const checkSchemeId = (req, res, next) => {
-
 }
 
-/*
-  If `scheme_name` is missing, empty string or not a string:
-
-  status 400
-  {
-    "message": "invalid scheme_name"
-  }
-*/
-const validateScheme = (req, res, next) => {
-
+// Middleware to validate scheme body
+function validateScheme(req, res, next) {
+  const { scheme_name } = req.body;
+  if (!scheme_name || typeof scheme_name !== 'string') {
+    return res.status(400).json({ message: 'invalid scheme_name' });
+  }else{
+  next();
+}
 }
 
-/*
-  If `instructions` is missing, empty string or not a string, or
-  if `step_number` is not a number or is smaller than one:
-
-  status 400
-  {
-    "message": "invalid step"
+// Middleware to validate step
+function validateStep(req, res, next) {
+  const { step_number, instructions } = req.body;
+  
+  if (typeof step_number !== 'number' || step_number <= 0) {
+    return res.status(400).json({ message: 'invalid step' });
   }
-*/
-const validateStep = (req, res, next) => {
-
+  
+  if (!instructions || typeof instructions !== 'string') {
+    return res.status(400).json({ message: 'invalid step' });
+  }
+  
+  next();
 }
 
 module.exports = {
   checkSchemeId,
   validateScheme,
   validateStep,
-}
+};
